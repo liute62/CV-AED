@@ -53,25 +53,25 @@ plt.show()
 # http://docs.opencv.org/trunk/dd/d1a/group__imgproc__feature.html#ga04723e007ed888ddf11d9ba04e2232de
 # http://docs.opencv.org/trunk/da/d22/tutorial_py_canny.html
 #
-
-# img = cv2.bilateralFilter(img,9,75,75)
-# edges = cv2.Canny(img, 0, 72)
-# plt.subplot(121), plt.imshow(img, cmap='gray')
-# plt.title('Original Image'), plt.xticks([]), plt.yticks([])
-# plt.subplot(122), plt.imshow(edges, cmap='gray')
-# plt.title('Edge Image'), plt.xticks([]), plt.yticks([])
-# plt.show()
+img = res
+img = cv2.bilateralFilter(img,9,75,75)
+edges = cv2.Canny(img, 0, 72)
+plt.subplot(121), plt.imshow(img, cmap='gray')
+plt.title('Original Image'), plt.xticks([]), plt.yticks([])
+plt.subplot(122), plt.imshow(edges, cmap='gray')
+plt.title('Edge Image'), plt.xticks([]), plt.yticks([])
+plt.show()
 
 
 #
 # Find contours of a binary image:
 #
-imgray = cv2.cvtColor(res,cv2.COLOR_BGR2GRAY)
-ret,thresh = cv2.threshold(imgray,127,255,0)
-contours, hierarchy = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
-cv2.drawContours(img, contours, -1, (0, 255, 0), 3)
-plt.imshow(img, interpolation='bicubic')
-plt.show()
+# imgray = cv2.cvtColor(res,cv2.COLOR_BGR2GRAY)
+# ret,thresh = cv2.threshold(imgray,127,255,0)
+# contours, hierarchy = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+# cv2.drawContours(img, contours, -1, (0, 255, 0), 3)
+# plt.imshow(img, interpolation='bicubic')
+# plt.show()
 
 #
 # Find
