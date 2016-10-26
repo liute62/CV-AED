@@ -1,7 +1,9 @@
 import cv2
 import feature_detetor
+import util
 
-str1 = 'video/AED1.mp4'
+
+str1 = 'video/AED3.mp4'
 cap = cv2.VideoCapture(str1)
 while not cap.isOpened():
     cap = cv2.VideoCapture(str1)
@@ -11,7 +13,14 @@ while not cap.isOpened():
 pos_frame = cap.get(cv2.cv.CV_CAP_PROP_POS_FRAMES)
 last_pos_frame = 1
 frame_counter = 0
-frame_sampling = 20
+frame_sampling = 10
+
+CONST_STAGE_PLUG = 0
+CONST_STAGE_FLASH_BTN = 1
+CONST_STAGE_SHOCK_DELIVER = 2
+current_stage = CONST_STAGE_PLUG
+
+
 while True:
     flag, frame = cap.read()
     if flag:
@@ -19,12 +28,23 @@ while True:
         pos_frame = cap.get(cv2.cv.CV_CAP_PROP_POS_FRAMES)
         if(pos_frame > last_pos_frame+frame_sampling):
             if frame_counter > 3:
-                feature_detetor.detect_stage_area(last_valid_frame,frame)
+                if current_stage == CONST_STAGE_PLUG:
+                    is_detected = feature_detetor.detect_stage_area(last_valid_frame,frame)
+                    if is_detected:
+                        print "detect the yellow plug, now turn to stage 2"
+                    current_stage = CONST_STAGE_FLASH_BTN
+                elif current_stage == CONST_STAGE_FLASH_BTN:
+                    print "CONST_STAGE_FLASH_BTN"
+
+                elif current_stage == CONST_STAGE_SHOCK_DELIVER:
+                    print "CONST_STAGE_SHOCK_DELIVER"
                 #gray = cv2.cvtColor(last_valid_frame, cv2.COLOR_BGR2GRAY)
+                #util.show_resized_img(gray)
                 #cv2.imshow('video', gray)
             last_pos_frame = pos_frame
             last_valid_frame = frame
             frame_counter = frame_counter + 1
+            print "####################"
             #cv2.imshow('video', frame)
             #print str(pos_frame)+" frames"
     else:
