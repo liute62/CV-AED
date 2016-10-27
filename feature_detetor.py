@@ -4,20 +4,18 @@
 import cv2
 import numpy as np
 from matplotlib import pyplot as plt
+import util
+import flash_detetor
+
 #
 # This is an for
-#
 #
 
 area_orange_btn_x = []
 area_orange_btn_y = []
+detected_x = 0
+detected_y = 0
 
-
-
-def show_two_image(image1,image2):
-    img_two = np.concatenate((image1, image2), axis=1)
-    plt.imshow(img_two)
-    plt.show()
 
 def shape_detect(c):
     shape = "unidentified"
@@ -40,7 +38,7 @@ def area_range_estimate(areaX,areaY,type):
     if(type == 1):
         area_x_left = 300
         area_x_right = 600
-        area_y_left = 30
+        area_y_left = 50
         area_y_right = 500
     if(areaX < area_x_left or areaX > area_x_right):
         return False
@@ -70,8 +68,14 @@ def refresh():
     print "refresh"
 
 def determine_orange_btn(array1,array2):
-    to_return1 = array1[0]
-    to_return2 = array2[0]
+    if len(array1) > 0:
+        to_return1 = array1[0]
+    else:
+        to_return1 = []
+    if len(array2) > 0:
+        to_return2 = array2[0]
+    else:
+        to_return2 = []
     min_dis = 100000000
     for cnt1 in array1:
         for cnt2 in array2:
@@ -112,20 +116,21 @@ def detect_stage_area(image1,image2):
     mask2 = cv2.inRange(hsv2, lower_blue, upper_blue)
     res1 = cv2.bitwise_and(image1, image1, mask=mask1)
     res2 = cv2.bitwise_and(image2, image2, mask=mask2)
+    #cv2.imshow('video', res1)
     tmp1 = cv2.cvtColor(res1, cv2.COLOR_HSV2BGR)
     tmp2 = cv2.cvtColor(res2, cv2.COLOR_HSV2BGR)
     black1 = cv2.cvtColor(tmp1, cv2.COLOR_BGR2GRAY)
     black2 = cv2.cvtColor(tmp2, cv2.COLOR_BGR2GRAY)
     ret1, thresh1 = cv2.threshold(black1, 0, 255, cv2.THRESH_BINARY)
     ret2, thresh2 = cv2.threshold(black2, 0, 255, cv2.THRESH_BINARY)
-    #show_two_image(black1,black2)
-
+    #util.show_two_image(black1,black2)
     cnts1, hierarchy = cv2.findContours(thresh1.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
     cnts2, hierarchy = cv2.findContours(thresh2.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
     org_btn_candidate_1 = []
     org_btn_candidate_2 = []
     yellow_plug_candidate_1 = []
     yellow_plug_candidate_2 = []
+    cv2.imshow('video', black1)
 
     for cnt in cnts1:
         area0 = cv2.contourArea(cnt)
@@ -154,19 +159,25 @@ def detect_stage_area(image1,image2):
              #   org_btn_candidate_2.append(area0)
     print '------------end'
     cnt1,cnt2 = determine_orange_btn(org_btn_candidate_1,org_btn_candidate_2)
-    x, y, w, h = cv2.boundingRect(cnt1)
+    if len(cnt1) == 0:
+        return 0,0,0
+    x1, y1, w1, h1 = cv2.boundingRect(cnt1)
     #print w, h, x, y
-    result1 = determine_yellow_plug(org_btn_candidate_1,x,y)
-    x, y, w, h = cv2.boundingRect(cnt2)
+    result1 = determine_yellow_plug(org_btn_candidate_1,x1,y1)
+    if len(cnt2) == 0:
+        return 0,0,0
+    x2, y2, w2, h2 = cv2.boundingRect(cnt2)
     #print w, h, x, y
-    result2 = determine_yellow_plug(org_btn_candidate_2,x,y)
+    result2 = determine_yellow_plug(org_btn_candidate_2,x2,y2)
     if(result1 == 1 and result2 == 1):
         global confidence_counter;
         confidence_counter += 1
     if(confidence_counter > 3):
-        show_two_image(black1,black2)
-        return True
-    return False
+        detected_x = (x1 + x1) / 2
+        detected_y = (y1 + y2) / 2
+        util.show_two_image(black1,black2)
+        return 1,detected_x,detected_y
+    return 0,0,0
     #cv2.drawContours(thresh1,orange_btn1,-1, (0, 255, 0), 3)
     #cv2.drawContours(thresh2,orange_btn2,-1, (0, 255, 0), 3)
     #show_two_image(thresh1,thresh2)

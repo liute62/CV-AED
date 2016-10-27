@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+from matplotlib import pyplot as plt
 
 def show_resized_img(img):
     screen_res = 1000, 500
@@ -12,3 +13,26 @@ def show_resized_img(img):
     cv2.namedWindow('dst_rt', cv2.WINDOW_NORMAL)
     cv2.resizeWindow('dst_rt', window_width, window_height)
     cv2.imshow('dst_rt', img)
+
+def show_two_image(image1,image2):
+    img_two = np.concatenate((image1, image2), axis=1)
+    plt.imshow(img_two)
+    plt.show()
+
+
+
+def getRotatedImage(image_file, green_loc, yellow_loc, blue_loc):
+    '''
+    :param image_file: file name
+    :param green_loc: list[x, y]
+    :param yellow_loc: list[x, y]
+    :param blue_loc:  list[x, y]
+    :return: rotated image
+    '''
+    img = cv2.imread(image_file)
+    rows,cols,ch = img.shape
+    pts1 = np.float32([[687, 205], [278, 418], [767, 384]])
+    pts2 = np.float32([green_loc, yellow_loc, blue_loc])
+    M = cv2.getAffineTransform(pts1,pts2)
+    dst = cv2.warpAffine(img,M,(cols,rows))
+    return dst

@@ -1,6 +1,7 @@
 import cv2
 import feature_detetor
 import util
+import flash_detetor
 
 
 str1 = 'video/AED3.mp4'
@@ -13,12 +14,14 @@ while not cap.isOpened():
 pos_frame = cap.get(cv2.cv.CV_CAP_PROP_POS_FRAMES)
 last_pos_frame = 1
 frame_counter = 0
-frame_sampling = 10
+frame_sampling = 1
 
 CONST_STAGE_PLUG = 0
 CONST_STAGE_FLASH_BTN = 1
 CONST_STAGE_SHOCK_DELIVER = 2
 current_stage = CONST_STAGE_PLUG
+detected_x = 0
+detected_y = 0
 
 
 while True:
@@ -29,13 +32,17 @@ while True:
         if(pos_frame > last_pos_frame+frame_sampling):
             if frame_counter > 3:
                 if current_stage == CONST_STAGE_PLUG:
-                    is_detected = feature_detetor.detect_stage_area(last_valid_frame,frame)
+                    is_detected,detected_x,detected_y = feature_detetor.detect_stage_area(last_valid_frame,frame)
                     if is_detected:
                         print "detect the yellow plug, now turn to stage 2"
-                    current_stage = CONST_STAGE_FLASH_BTN
+                        current_stage = CONST_STAGE_FLASH_BTN
                 elif current_stage == CONST_STAGE_FLASH_BTN:
-                    print "CONST_STAGE_FLASH_BTN"
-
+                    print "detect the flash button"
+                    is_detected = flash_detetor.flash_detection(last_valid_frame,frame,detected_x,detected_y)
+                    if is_detected:
+                        print "detect the flash button, now turn to stage 3"
+                        util.show_two_image(last_valid_frame,frame)
+                        current_stage = CONST_STAGE_SHOCK_DELIVER
                 elif current_stage == CONST_STAGE_SHOCK_DELIVER:
                     print "CONST_STAGE_SHOCK_DELIVER"
                 #gray = cv2.cvtColor(last_valid_frame, cv2.COLOR_BGR2GRAY)
