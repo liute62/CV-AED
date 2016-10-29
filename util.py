@@ -1,3 +1,6 @@
+#
+# The self-convenience util tools
+#
 import cv2
 import numpy as np
 from matplotlib import pyplot as plt
@@ -19,6 +22,10 @@ def show_two_image(image1,image2):
     plt.imshow(img_two)
     plt.show()
 
+def show_image(name,image,x,y):
+    dim = (x,y)
+    resized = cv2.resize(image, dim, interpolation=cv2.INTER_AREA)
+    cv2.imshow(name,resized)
 
 
 def getRotatedImage(image_file, green_loc, yellow_loc, blue_loc):

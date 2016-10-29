@@ -1,7 +1,12 @@
+#
+# The main logical loop for processing an video containing all needed AED operations.
+#
 import cv2
-import feature_detetor
 import util
-import flash_detetor
+import stage_pre_main
+import stage_1_main
+import stage_2_main
+import stage_3_main
 
 
 str1 = 'video/AED3.mp4'
@@ -16,13 +21,18 @@ last_pos_frame = 1
 frame_counter = 0
 frame_sampling = 1
 
-CONST_STAGE_PLUG = 0
-CONST_STAGE_FLASH_BTN = 1
-CONST_STAGE_SHOCK_DELIVER = 2
-current_stage = CONST_STAGE_PLUG
+#
+# Variables for each stage
+#
+CONST_STAGE_PREPARE = -1
+CONST_STAGE_START = 0
+CONST_STAGE_PLUG = 1
+CONST_STAGE_FLASH_BTN = 2
+CONST_STAGE_SHOCK_DELIVER = 3
+current_stage = CONST_STAGE_PREPARE
+
 detected_x = 0
 detected_y = 0
-
 
 while True:
     flag, frame = cap.read()
@@ -30,30 +40,51 @@ while True:
         # The frame is ready and already captured
         pos_frame = cap.get(cv2.cv.CV_CAP_PROP_POS_FRAMES)
         if(pos_frame > last_pos_frame+frame_sampling):
+
             if frame_counter > 3:
-                if current_stage == CONST_STAGE_PLUG:
-                    is_detected,detected_x,detected_y = feature_detetor.detect_stage_area(last_valid_frame,frame)
-                    if is_detected:
-                        print "detect the yellow plug, now turn to stage 2"
+
+                if current_stage == CONST_STAGE_PREPARE:
+                    #do preposition
+                    is_prepared = stage_pre_main.prepare(last_valid_frame,frame)
+                    if is_prepared:
+                        print "find the aed and well prepared, now turn to stage 1 detection"
+                        current_stage = CONST_STAGE_START
+                        detected_x,detected_y = stage_pre_main.retrieve_pos()
+                        size_org = stage_pre_main.retrieve_size()
+                        stage_1_main.set_params(detected_x,detected_y,size_org)
+
+                elif current_stage == CONST_STAGE_START:
+                    # do start stage detection
+                    is_success = stage_1_main.run(last_valid_frame,frame)
+                    if is_success:
+                        print "detect the aed turn on, now turn to stage 2 detection"
+                        current_stage = CONST_STAGE_PLUG
+                        detected_x,detected_y,size_org = stage_1_main.retrieve_params()
+                        stage_2_main.set_params(detected_x,detected_y,size_org)
+
+                elif current_stage == CONST_STAGE_PLUG:
+                    is_success = stage_2_main.run(last_valid_frame,frame)
+                    if is_success:
+                        print "detect the yellow plug, now turn to stage 3 detection"
                         current_stage = CONST_STAGE_FLASH_BTN
+                        detected_x,detected_y = stage_2_main.retrieve_params()
+                        stage_3_main.set_params(detected_x,detected_y)
+
                 elif current_stage == CONST_STAGE_FLASH_BTN:
                     print "detect the flash button"
-                    is_detected = flash_detetor.flash_detection(last_valid_frame,frame,detected_x,detected_y)
-                    if is_detected:
-                        print "detect the flash button, now turn to stage 3"
+                    is_success = stage_3_main.run(last_valid_frame,frame)
+                    if is_success:
+                        print "detect the flash button, now turn to end"
                         util.show_two_image(last_valid_frame,frame)
                         current_stage = CONST_STAGE_SHOCK_DELIVER
+
                 elif current_stage == CONST_STAGE_SHOCK_DELIVER:
                     print "CONST_STAGE_SHOCK_DELIVER"
-                #gray = cv2.cvtColor(last_valid_frame, cv2.COLOR_BGR2GRAY)
-                #util.show_resized_img(gray)
-                #cv2.imshow('video', gray)
+                    break
             last_pos_frame = pos_frame
             last_valid_frame = frame
             frame_counter = frame_counter + 1
             print "####################"
-            #cv2.imshow('video', frame)
-            #print str(pos_frame)+" frames"
     else:
         # The next frame is not ready, so we try to read it again
         cap.set(cv2.cv.CV_CAP_PROP_POS_FRAMES, pos_frame-1)

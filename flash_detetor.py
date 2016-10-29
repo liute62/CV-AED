@@ -1,3 +1,6 @@
+#
+# The detector for flashing button by using color filter
+#
 import cv2
 import numpy as np
 from matplotlib import pyplot as plt
@@ -19,6 +22,10 @@ def orange_flash_num(candidate):
     return counter
 
 
+def left_top_flash_num():
+
+    return 0
+
 def flash_detection(img1,img2,orange_x,orange_y):
 
     global org_pos_x;
@@ -35,12 +42,12 @@ def flash_detection(img1,img2,orange_x,orange_y):
 
     hsv1 = cv2.cvtColor(thresh1, cv2.COLOR_BGR2GRAY)
     hsv2 = cv2.cvtColor(thresh2, cv2.COLOR_BGR2GRAY)
-    cv2.imshow('video', hsv1)
-    #util.show_two_image(img1,img2)
-    #util.show_two_image(hsv1,hsv2)
 
     cnts1, hierarchy1 = cv2.findContours(hsv1.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
     cnts2, hierarchy2 = cv2.findContours(hsv2.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+
+    util.show_image("w1",hsv1,640,320)
+    util.show_image("w2",img2,640,320)
 
     org_btn_candidate_1 = []
     org_btn_candidate_2 = []
@@ -50,7 +57,9 @@ def flash_detection(img1,img2,orange_x,orange_y):
         #if area0 > 10:
         #    print area0
         cnt_len = cv2.arcLength(cnt, True)
-        cnt = cv2.approxPolyDP(cnt, 0.02 * cnt_len, True)
+        cnt = cv2.approxPolyDP(cnt, 0.02 * cnt_len, False)
+        if area0 > 100:
+            print area0
         if feature_detetor.area_estimate(area0,1):
             x, y, w, h = cv2.boundingRect(cnt)
             print w,h,x,y
@@ -61,7 +70,9 @@ def flash_detection(img1,img2,orange_x,orange_y):
          #   print area0
         cnt_len = cv2.arcLength(cnt, True)
         area0 = cv2.contourArea(cnt)
-        cnt = cv2.approxPolyDP(cnt, 0.02 * cnt_len, True)
+        cnt = cv2.approxPolyDP(cnt, 0.02 * cnt_len, False)
+        if area0 > 100:
+            print area0
         if feature_detetor.area_estimate(area0, 1):
             x, y, w, h = cv2.boundingRect(cnt)
             print w, h,x,y
