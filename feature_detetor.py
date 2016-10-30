@@ -22,8 +22,8 @@ last_detected_org_y = 0
 static_org_btn_var = 70
 dynamic_org_btn_var_x = 0
 dynamic_org_btn_var_y = 0
-orange_btn_size_min = 0
-orange_btn_size_max = 0
+orange_btn_size_min = 1200
+orange_btn_size_max = 3000
 confidence_counter = 0
 
 
@@ -63,7 +63,7 @@ def area_estimate(area,type):
         area_size_2 = orange_btn_size_max
     #person hand
     elif type == 2:
-        area_size_1 = 10000
+        area_size_1 = 12000
         area_size_2 = 120000
     if area > area_size_1 and area < area_size_2:
         return True
@@ -101,7 +101,56 @@ def determine_yellow_plug(cnts,btn_x,btn_y):
     return 0
 
 
-def detect_stage_area(image1,image2,org_pos_x,org_pos_y):
+def detect_start_btn(image1,image2):
+
+    #res1,res2 = color_filter.filter_green(image1,image2)
+    #util.show_two_image(image1,image2)
+    #set it as 300, 550 as testing
+    return 200,550
+
+
+def detect_hand(image1,image2):
+
+    res1, res2 = color_filter.filter_orange(image1, image2)
+    # transfer HSV to Binary image for contour detection
+    tmp1 = cv2.cvtColor(res1, cv2.COLOR_HSV2BGR)
+    tmp2 = cv2.cvtColor(res2, cv2.COLOR_HSV2BGR)
+    black1 = cv2.cvtColor(tmp1, cv2.COLOR_BGR2GRAY)
+    black2 = cv2.cvtColor(tmp2, cv2.COLOR_BGR2GRAY)
+    ret1, thresh1 = cv2.threshold(black1, 0, 255, cv2.THRESH_BINARY)
+    ret2, thresh2 = cv2.threshold(black2, 0, 255, cv2.THRESH_BINARY)
+    cnts1, hierarchy = cv2.findContours(thresh1.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+    cnts2, hierarchy = cv2.findContours(thresh2.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+    # cnts1 and cnts2 contain the contour result
+    hand_candidate_1 = []
+    hand_candidate_2 = []
+    util.show_image("hand",res2,640,320)
+    x2 = 0
+    y2 = 0
+    for cnt in cnts1:
+        area0 = cv2.contourArea(cnt)
+        cnt_len = cv2.arcLength(cnt, True)
+        cnt = cv2.approxPolyDP(cnt, 0.02 * cnt_len, True)
+        if area_estimate(area0, 2):
+            #print area0
+            x1, y1, w1, h1 = cv2.boundingRect(cnt)
+            #print x1, y1, w1, h1
+            hand_candidate_1.append(cnt)
+    #print "------------first"
+    for cnt in cnts2:
+        cnt_len = cv2.arcLength(cnt, True)
+        area0 = cv2.contourArea(cnt)
+        cnt = cv2.approxPolyDP(cnt, 0.02 * cnt_len, True)
+        if area_estimate(area0, 2):
+            #print area0
+            x2, y2, w2, h2 = cv2.boundingRect(cnt)
+            #print x2, y2, w2, h2
+            hand_candidate_2.append(cnt)
+    #print '------------second'
+    return x2, y2
+
+
+def detect_orange_btn(image1, image2, org_pos_x, org_pos_y):
 
     print org_pos_x
     print org_pos_y
@@ -134,8 +183,8 @@ def detect_stage_area(image1,image2,org_pos_x,org_pos_y):
     #util.show_two_image(mask1,mask2)
     # perform the actual resizing of the image and show it
     #util.show_two_image(black1,black2)
-    #util.show_image("window1",image1,640,320)
-    #util.show_image("window2",black1,640,320)
+    util.show_image("window1",image1,640,320)
+    util.show_image("window2",black1,640,320)
 
     for cnt in cnts1:
         area0 = cv2.contourArea(cnt)

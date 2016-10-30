@@ -12,6 +12,7 @@ confidence_counter = 0
 org_pos_x = 0;
 org_pos_y = 0;
 
+
 def orange_flash_num(candidate):
     counter = 0
     for item1 in candidate:
@@ -26,7 +27,13 @@ def left_top_flash_num():
 
     return 0
 
-def flash_detection(img1,img2,orange_x,orange_y):
+
+def reset():
+    global confidence_counter
+    confidence_counter = 0
+
+
+def flash_detection(img1, img2, orange_x, orange_y, show_type = 0):
 
     global org_pos_x;
     global org_pos_y;
@@ -46,8 +53,11 @@ def flash_detection(img1,img2,orange_x,orange_y):
     cnts1, hierarchy1 = cv2.findContours(hsv1.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
     cnts2, hierarchy2 = cv2.findContours(hsv2.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
 
-    util.show_image("w1",hsv1,640,320)
-    util.show_image("w2",img2,640,320)
+    if show_type == 1:
+        util.show_two_image(hsv1,hsv2)
+    elif show_type == 2:
+        util.show_image("w1",hsv1,640,320)
+        util.show_image("w2",img2,640,320)
 
     org_btn_candidate_1 = []
     org_btn_candidate_2 = []
@@ -86,6 +96,7 @@ def flash_detection(img1,img2,orange_x,orange_y):
         confidence_counter += 1
     if confidence_counter >= 3:
         print "detected"
+        reset()
         return True
     print '------------end'
     return False

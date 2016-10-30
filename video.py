@@ -39,12 +39,12 @@ while True:
     if flag:
         # The frame is ready and already captured
         pos_frame = cap.get(cv2.cv.CV_CAP_PROP_POS_FRAMES)
-        if(pos_frame > last_pos_frame+frame_sampling):
+        if pos_frame > last_pos_frame + frame_sampling:
 
             if frame_counter > 3:
 
                 if current_stage == CONST_STAGE_PREPARE:
-                    #do preposition
+                    # do preposition
                     is_prepared = stage_pre_main.prepare(last_valid_frame,frame)
                     if is_prepared:
                         print "find the aed and well prepared, now turn to stage 1 detection"
@@ -67,7 +67,7 @@ while True:
                     if is_success:
                         print "detect the yellow plug, now turn to stage 3 detection"
                         current_stage = CONST_STAGE_FLASH_BTN
-                        detected_x,detected_y = stage_2_main.retrieve_params()
+                        detected_x,detected_y,size_org = stage_2_main.retrieve_params()
                         stage_3_main.set_params(detected_x,detected_y)
 
                 elif current_stage == CONST_STAGE_FLASH_BTN:

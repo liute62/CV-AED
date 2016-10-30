@@ -2,6 +2,7 @@
 # The preparation for detecting the following three stages.
 #
 import aed_detector
+import util
 
 detected_org_x = 0
 detected_org_y = 0
@@ -22,6 +23,10 @@ def prepare(last_valid_frame,frame):
     global detected_org_x
     global detected_org_y
 
+    detected_org_x = 500
+    detected_org_y = 400
+
+    util.show_two_image(last_valid_frame,frame)
     is_aed_detected = aed_detector.aed_detect(last_valid_frame, frame)
     # now find the orange button and other important items precisely
     if is_aed_detected:

@@ -24,6 +24,12 @@ def retrieve_params():
 
 
 def run(last_valid_frame,frame):
-    feature_detetor.pre_size_estimate(1000, 3600)
-    is_detected = feature_detetor.detect_stage_area(last_valid_frame, frame, detected_x, detected_y)
-    return is_detected
+    feature_detetor.pre_size_estimate(1200, 3600)
+    global detected_x
+    global detected_y
+    is_detected,x,y = feature_detetor.detect_orange_btn(last_valid_frame, frame, detected_x, detected_y)
+    if is_detected == 1:
+        detected_x = x
+        detected_y = y
+        return True
+    return False
